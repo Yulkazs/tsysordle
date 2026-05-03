@@ -10,6 +10,119 @@ const WIN_MESSAGES = ["GENIUS", "MAGNIFICENT", "IMPRESSIVE", "SPLENDID", "GREAT"
 type KeyState = Record<string, TileState | undefined>;
 interface TileData { letter: string; state: TileState; }
 
+/* ── Imposter Lose Card ──────────────────────────────── */
+function ImposterCard({ word, onClose }: { word: string; onClose: () => void }) {
+  const [visible, setVisible] = useState(false);
+  useEffect(() => {
+    const t = setTimeout(() => setVisible(true), 50);
+    return () => clearTimeout(t);
+  }, []);
+
+  return (
+    <div
+      onClick={onClose}
+      style={{
+        position: "fixed",
+        inset: 0,
+        zIndex: 999,
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        background: "rgba(0,0,0,0.72)",
+        backdropFilter: "blur(3px)",
+        opacity: visible ? 1 : 0,
+        transition: "opacity 0.4s ease",
+        cursor: "pointer",
+      }}
+    >
+      {/* The image IS the card — word floats on top of it */}
+      <div
+        onClick={e => e.stopPropagation()}
+        style={{
+          position: "relative",
+          width: "min(480px, 92vw)",
+          transform: visible ? "scale(1) translateY(0)" : "scale(0.85) translateY(30px)",
+          transition: "transform 0.45s cubic-bezier(0.34,1.56,0.64,1), opacity 0.4s ease",
+          opacity: visible ? 1 : 0,
+          cursor: "default",
+        }}
+      >
+        {/* The full imposter image as the card */}
+        <img
+          src="/imposter.png"
+          alt="Imposter"
+          style={{
+            width: "100%",
+            display: "block",
+            borderRadius: 16,
+          }}
+        />
+
+        {/* Word overlaid above the red line.
+            The red line sits roughly 47% down the image,
+            so we position the text around 28–38% from the top. */}
+        <div
+          style={{
+            position: "absolute",
+            top: "28%",
+            left: 0,
+            right: 0,
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            gap: 4,
+            pointerEvents: "none",
+          }}
+        >
+          <div style={{
+            fontFamily: "'Courier New', monospace",
+            fontSize: "clamp(9px, 2.2vw, 11px)",
+            letterSpacing: "4px",
+            color: "rgba(210,60,60,0.6)",
+            textTransform: "uppercase",
+          }}>
+            the word was
+          </div>
+          <div style={{
+            fontFamily: "'Courier New', monospace",
+            fontSize: "clamp(32px, 9vw, 48px)",
+            fontWeight: 900,
+            color: "#cc1111",
+            letterSpacing: "6px",
+            textShadow: "0 0 20px rgba(220,30,30,0.7), 0 0 40px rgba(180,0,0,0.4)",
+            lineHeight: 1,
+          }}>
+            {word}
+          </div>
+        </div>
+
+        {/* Close button */}
+        <button
+          onClick={onClose}
+          style={{
+            position: "absolute",
+            top: 10,
+            right: 14,
+            background: "none",
+            border: "none",
+            color: "rgba(180,40,40,0.5)",
+            fontSize: 16,
+            cursor: "pointer",
+            fontFamily: "monospace",
+            lineHeight: 1,
+            transition: "color 0.2s",
+          }}
+          onMouseEnter={e => (e.currentTarget.style.color = "rgba(230,60,60,0.95)")}
+          onMouseLeave={e => (e.currentTarget.style.color = "rgba(180,40,40,0.5)")}
+        >
+          ✕
+        </button>
+      </div>
+    </div>
+  );
+}
+
+/* ── Main Game ───────────────────────────────────────── */
 export default function Game({ onBack }: { onBack: () => void }) {
   const [target] = useState<string>(() => pickDailyWord());
   const [guesses, setGuesses] = useState<TileData[][]>(
@@ -25,6 +138,7 @@ export default function Game({ onBack }: { onBack: () => void }) {
   const [shakingRow, setShakingRow] = useState<number | null>(null);
   const [revealingRow, setRevealingRow] = useState<number | null>(null);
   const [bouncingRow, setBouncingRow] = useState<number | null>(null);
+  const [showImposter, setShowImposter] = useState(false);
 
   const showMessage = (msg: string, duration = 1800) => {
     setMessage(msg);
@@ -74,7 +188,7 @@ export default function Game({ onBack }: { onBack: () => void }) {
           showMessage(WIN_MESSAGES[currentRow], 0);
         } else if (currentRow + 1 === MAX_GUESSES) {
           setGameState("lost");
-          showMessage(target, 0);
+          setTimeout(() => setShowImposter(true), 400);
         } else {
           setCurrentRow(r => r + 1);
           setCurrentCol(0);
@@ -135,57 +249,63 @@ export default function Game({ onBack }: { onBack: () => void }) {
   ];
 
   return (
-    <div className="game-root">
-      <div className="game-header">
-        <button className="back-btn" onClick={onBack}>← back</button>
-        <div className="game-title">TSYSORDLE</div>
-        <div style={{ width: 70 }} />
-      </div>
+    <>
+      {showImposter && (
+        <ImposterCard word={target} onClose={() => setShowImposter(false)} />
+      )}
 
-      <div className="game-sub">5-letter slang · 6 guesses</div>
-      <div className="game-msg">{message}</div>
+      <div className="game-root">
+        <div className="game-header">
+          <button className="back-btn" onClick={onBack}>← back</button>
+          <div className="game-title">TSYSORDLE</div>
+          <div style={{ width: 70 }} />
+        </div>
 
-      <div className="game-grid">
-        {guesses.map((row, rIdx) => (
-          <div key={rIdx} className={`g-row${shakingRow === rIdx ? " shake" : ""}`}>
-            {row.map((tile, cIdx) => (
-              <div
-                key={cIdx}
-                className={getTileClass(tile.state, rIdx)}
-                style={{
-                  ...getTileStyle(tile.state),
-                  ...(revealingRow === rIdx ? { animationDelay: `${cIdx * 80}ms` } : {}),
-                }}
-              >
-                {tile.letter}
-              </div>
-            ))}
-          </div>
-        ))}
-      </div>
+        <div className="game-sub">5-letter slang · 6 guesses</div>
+        <div className="game-msg">{message}</div>
 
-      <div className="game-hint">type on keyboard or tap below</div>
-
-      <div className="game-keyboard">
-        {KB_ROWS.map((row, i) => (
-          <div key={i} className="kb-row">
-            {row.map(k => {
-              const keyVal = k === "⌫" ? "BACKSPACE" : k;
-              const isWide = k.length > 1;
-              return (
-                <button
-                  key={k}
-                  className={`g-key${isWide ? " wide" : ""}`}
-                  style={k.length === 1 ? getKeyStyle(k) : {}}
-                  onClick={() => handleKey(keyVal)}
+        <div className="game-grid">
+          {guesses.map((row, rIdx) => (
+            <div key={rIdx} className={`g-row${shakingRow === rIdx ? " shake" : ""}`}>
+              {row.map((tile, cIdx) => (
+                <div
+                  key={cIdx}
+                  className={getTileClass(tile.state, rIdx)}
+                  style={{
+                    ...getTileStyle(tile.state),
+                    ...(revealingRow === rIdx ? { animationDelay: `${cIdx * 80}ms` } : {}),
+                  }}
                 >
-                  {k}
-                </button>
-              );
-            })}
-          </div>
-        ))}
+                  {tile.letter}
+                </div>
+              ))}
+            </div>
+          ))}
+        </div>
+
+        <div className="game-hint">type on keyboard or tap below</div>
+
+        <div className="game-keyboard">
+          {KB_ROWS.map((row, i) => (
+            <div key={i} className="kb-row">
+              {row.map(k => {
+                const keyVal = k === "⌫" ? "BACKSPACE" : k;
+                const isWide = k.length > 1;
+                return (
+                  <button
+                    key={k}
+                    className={`g-key${isWide ? " wide" : ""}`}
+                    style={k.length === 1 ? getKeyStyle(k) : {}}
+                    onClick={() => handleKey(keyVal)}
+                  >
+                    {k}
+                  </button>
+                );
+              })}
+            </div>
+          ))}
+        </div>
       </div>
-    </div>
+    </>
   );
 }
