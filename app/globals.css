@@ -1,4 +1,11 @@
 @import "tailwindcss";
+ 
+@font-face {
+  font-family: 'Monigue';
+  src: url('/fonts/Monigue-DEMO.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+}
 
 :root {
   --background: #ffffff;
@@ -23,6 +30,24 @@
   }
 }
 
+html, body { height: 100%; }
+ 
 body {
+  font-family: 'Inter', sans-serif;
   background: var(--background);
+  color: var(--foreground);
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+ 
+.fade-in  { animation: screenIn  0.55s ease both; }
+.fade-out { animation: screenOut 0.55s ease both; }
+ 
+@keyframes screenIn {
+  from { opacity: 0; transform: translateY(16px); }
+  to   { opacity: 1; transform: translateY(0);    }
+}
+@keyframes screenOut {
+  from { opacity: 1; transform: translateY(0);     }
+  to   { opacity: 0; transform: translateY(-16px); }
 }
