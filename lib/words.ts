@@ -1,10 +1,21 @@
 export const WORD_LIST: string[] = [
-  "SUSSY", "RIZZY", "SIGMA", "GYATT", "DRIPP", "SKIBI", "POGGY", "SALTY",
-  "THICC", "VIBEN", "BASED", "GOATD", "LOWKY", "NOCAP", "SLAYY", "VIBEY",
-  "FANUM", "GRIND", "SWAGD", "FLEXY", "RATIO", "CLOUT", "NIGGA", "CRACKA",
-  "HONKY", "POCHO", "GYPPO", "CHINK", "PADDY", "DOTTY", "YEETS", "SLAPS",
-  "FLEEK", "DRIPS", "WAVES", "MUNCH", "BUSSY", "GOONE", "CRUNK", "SWERV",
-  "SWOLE", "ZOOMS", "SIMPS", "CLAPS", "EDGED", "LOWFI", "GRINGO",
+  "BITCH", "PRICK", "PUSSY", "SHITE", "WHORE", "TWATS", "ARSES", "BALLS",
+  "TURDS", "DICKS", "CUNTS", "WANKR", "NIGGA", "SLUTT", "CRAPP", "FUCKR",
+  
+  "FANNY", "CHODE", "COCKY", "BONER", "MINGE", "SHAGS", "KNOCK", "PISSY",
+  "POOFS", "DILDO", "FAGGY", "SKANK", "SMEEG", "MORON", "COOTS", "BUSSY",
+
+  "JERKS", "DORKS", "MORON", "IDOTS", "DWEEB", "WIMPS", "LAMES", "CLOWN",
+  "GOOFS", "PANSY", "TRAMP", "CRANK", "SKANK", "CREEP", "FREAK", "LOSER",
+
+  "RATIO", "CLOUT", "BASED", "SIMPS", "MUNCH", "GOONE", "CRUNK", "FLEXY",
+  "SWOLL", "ZOOOM", "CAPIN", "SLAPS", "YEETS", "NOOBS", "GOONS", "SALTY",
+
+  "DUMMY", "DIPPY", "DENSE", "THICK", "SCUMS", "PIGGY", "RATTY", "SNAKE",
+  "SLIMY", "MOOCH", "GONGS", "MUPPT", "TWITS", "DUMBO", "SKEEZ", "DOUCH",
+
+  "BUTTS", "DONGZ", "JISMS", "TWINK", "KNOBS", "SHAFT", "GOOCH", "MUFFS",
+  "SACKY", "CACKY", "DUMPY", "WANGS", "CLITS", "SHITS", "CRAPS", "HELLS",
 ]
   .filter((w) => w.length === 5)
   .map((w) => w.toUpperCase());

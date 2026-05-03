@@ -10,7 +10,7 @@ const WIN_MESSAGES = ["GENIUS", "MAGNIFICENT", "IMPRESSIVE", "SPLENDID", "GREAT"
 type KeyState = Record<string, TileState | undefined>;
 interface TileData { letter: string; state: TileState; }
 
-export default function Game() {
+export default function Game({ onBack }: { onBack: () => void }) {
   const [target] = useState<string>(() => pickDailyWord());
   const [guesses, setGuesses] = useState<TileData[][]>(
     Array(MAX_GUESSES).fill(null).map(() =>
@@ -104,7 +104,7 @@ export default function Game() {
   }, [handleKey]);
 
   const getTileStyle = (state: TileState): React.CSSProperties => {
-    const base: React.CSSProperties = { borderRadius: 8 };
+    const base: React.CSSProperties = { borderRadius: 10 };
     if (state === "correct") return { ...base, backgroundImage: "url('/green.png')", backgroundSize: "cover", backgroundPosition: "center", border: "none", color: "#1a3a1a" };
     if (state === "present") return { ...base, backgroundImage: "url('/yellow.png')", backgroundSize: "cover", backgroundPosition: "center", border: "none", color: "#3a2800" };
     if (state === "absent")  return { ...base, background: "#1f1f1f", border: "2px solid #1f1f1f", color: "#555" };
@@ -135,183 +135,57 @@ export default function Game() {
   ];
 
   return (
-    <>
-      <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Space+Mono:wght@400;700&display=swap');
-
-        .game-root {
-          background: #111;
-          min-height: 100vh;
-          display: flex;
-          flex-direction: column;
-          align-items: center;
-          padding: 20px 12px 40px;
-          font-family: 'Space Mono', monospace;
-          color: #eee;
-        }
-
-        .game-header {
-          width: 100%;
-          max-width: 560px;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          position: relative;
-          padding-bottom: 14px;
-          border-bottom: 1px solid #222;
-          margin-bottom: 8px;
-        }
-
-        .game-title {
-          font-family: 'Bebas Neue', sans-serif;
-          font-size: 40px;
-          letter-spacing: 6px;
-          color: #fff;
-          line-height: 1;
-        }
-
-        .game-sub {
-          font-size: 9px;
-          letter-spacing: 3px;
-          color: #444;
-          text-transform: uppercase;
-          margin-bottom: 14px;
-        }
-
-        #msg {
-          font-family: 'Bebas Neue', sans-serif;
-          font-size: 20px;
-          letter-spacing: 2px;
-          min-height: 26px;
-          margin-bottom: 12px;
-          color: #FFE566;
-          text-align: center;
-        }
-
-        #grid {
-          display: flex;
-          flex-direction: column;
-          gap: 8px;
-          margin-bottom: 20px;
-        }
-
-        .row { display: flex; gap: 8px; }
-
-        .tile {
-          width: 68px;
-          height: 68px;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          font-family: 'Bebas Neue', sans-serif;
-          font-size: 38px;
-          user-select: none;
-        }
-
-        .tile.tbd { animation: pop .1s ease; }
-        .tile.reveal { animation: flip .35s ease forwards; }
-        .tile.bounce { animation: bounce .5s ease; }
-
-        @keyframes pop {
-          0%   { transform: scale(1); }
-          50%  { transform: scale(1.12); }
-          100% { transform: scale(1); }
-        }
-        @keyframes flip {
-          0%   { transform: rotateX(0); }
-          50%  { transform: rotateX(-90deg); }
-          100% { transform: rotateX(0); }
-        }
-        @keyframes bounce {
-          0%,100% { transform: translateY(0); }
-          30%     { transform: translateY(-10px); }
-        }
-
-        .shake { animation: shake .4s ease; }
-        @keyframes shake {
-          0%,100% { transform: translateX(0); }
-          20%,60% { transform: translateX(-7px); }
-          40%,80% { transform: translateX(7px); }
-        }
-
-        .hint { font-size: 9px; color: #333; letter-spacing: 1px; margin-bottom: 10px; }
-
-        #keyboard { display: flex; flex-direction: column; gap: 6px; align-items: center; }
-        .kb-row { display: flex; gap: 5px; }
-
-        .key {
-          min-width: 36px;
-          height: 50px;
-          padding: 0 6px;
-          background: #2a2a2a;
-          border: none;
-          color: #ccc;
-          font-family: 'Space Mono', monospace;
-          font-size: 11px;
-          font-weight: 700;
-          cursor: pointer;
-          border-radius: 6px;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          transition: background 0.2s, color 0.2s;
-          letter-spacing: 1px;
-        }
-
-        .key:hover { background: #3a3a3a; }
-        .key.wide { min-width: 58px; font-size: 9px; }
-      `}</style>
-
-      <div className="game-root">
-        <div className="game-header">
-          <div className="game-title">TSYSORDLE</div>
-        </div>
-
-        <div className="game-sub">5-letter slang · 6 guesses</div>
-        <div id="msg">{message}</div>
-
-        <div id="grid">
-          {guesses.map((row, rIdx) => (
-            <div key={rIdx} className={`row${shakingRow === rIdx ? " shake" : ""}`}>
-              {row.map((tile, cIdx) => (
-                <div
-                  key={cIdx}
-                  className={getTileClass(tile.state, rIdx)}
-                  style={{
-                    ...getTileStyle(tile.state),
-                    ...(revealingRow === rIdx ? { animationDelay: `${cIdx * 80}ms` } : {}),
-                  }}
-                >
-                  {tile.letter}
-                </div>
-              ))}
-            </div>
-          ))}
-        </div>
-
-        <div className="hint">type on keyboard or tap below</div>
-
-        <div id="keyboard">
-          {KB_ROWS.map((row, i) => (
-            <div key={i} className="kb-row">
-              {row.map(k => {
-                const keyVal = k === "⌫" ? "BACKSPACE" : k;
-                const isWide = k.length > 1;
-                return (
-                  <button
-                    key={k}
-                    className={`key${isWide ? " wide" : ""}`}
-                    style={k.length === 1 ? getKeyStyle(k) : {}}
-                    onClick={() => handleKey(keyVal)}
-                  >
-                    {k}
-                  </button>
-                );
-              })}
-            </div>
-          ))}
-        </div>
+    <div className="game-root">
+      <div className="game-header">
+        <button className="back-btn" onClick={onBack}>← back</button>
+        <div className="game-title">TSYSORDLE</div>
+        <div style={{ width: 70 }} />
       </div>
-    </>
+
+      <div className="game-sub">5-letter slang · 6 guesses</div>
+      <div className="game-msg">{message}</div>
+
+      <div className="game-grid">
+        {guesses.map((row, rIdx) => (
+          <div key={rIdx} className={`g-row${shakingRow === rIdx ? " shake" : ""}`}>
+            {row.map((tile, cIdx) => (
+              <div
+                key={cIdx}
+                className={getTileClass(tile.state, rIdx)}
+                style={{
+                  ...getTileStyle(tile.state),
+                  ...(revealingRow === rIdx ? { animationDelay: `${cIdx * 80}ms` } : {}),
+                }}
+              >
+                {tile.letter}
+              </div>
+            ))}
+          </div>
+        ))}
+      </div>
+
+      <div className="game-hint">type on keyboard or tap below</div>
+
+      <div className="game-keyboard">
+        {KB_ROWS.map((row, i) => (
+          <div key={i} className="kb-row">
+            {row.map(k => {
+              const keyVal = k === "⌫" ? "BACKSPACE" : k;
+              const isWide = k.length > 1;
+              return (
+                <button
+                  key={k}
+                  className={`g-key${isWide ? " wide" : ""}`}
+                  style={k.length === 1 ? getKeyStyle(k) : {}}
+                  onClick={() => handleKey(keyVal)}
+                >
+                  {k}
+                </button>
+              );
+            })}
+          </div>
+        ))}
+      </div>
+    </div>
   );
 }
